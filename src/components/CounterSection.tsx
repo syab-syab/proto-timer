@@ -70,6 +70,9 @@ const CounterSection = () => {
   // deleteにプライマリーキーを指定して削除できる
   const deleteDeadline = async (id: number | undefined) => deadline.delete(id)
 
+  // finishedの値を変更
+  // いずれはリセットボタンを押したらfinishedがtrueになって
+  // その後二度と変更できないようにする
   const toggleStatus = async (
     id: number | any,
     e: React.ChangeEvent<HTMLInputElement>
@@ -79,13 +82,12 @@ const CounterSection = () => {
     await deadline.update( id, {finished: !!e.target.checked })
   }
 
+  // deadlineのミリ秒が現在のミリ秒に追い越されたら
+  // 自動的にtrueになり
+  // その後は決して変更できないようにする
+
   const allItems: Array<Deadline> | any = useLiveQuery(() => deadline.toArray(), [])
-  // const tmpSearch: Array<Deadline> | any  = allItems?.filter((item: Deadline | any) => item.finished === false)
-  // const testSearch = tmpSearch.concat()
-  // console.log(testSearch)
-  // console.log("name=", testSearch[0].name)
-  // console.log("startSec=",  new Date(testSearch[0].startSec))
-  // console.log("deadline=",  new Date(testSearch[0].deadline))
+
   return (
     <div>
       <p>Counter</p>
