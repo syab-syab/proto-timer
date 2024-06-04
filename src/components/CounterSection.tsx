@@ -6,6 +6,7 @@ import millisecondsTest from '../functions/millisecondsTest'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Deadline } from '../models/Deadline'
 import dateCreate from '../functions/dateCreate'
+import { finished } from 'stream'
 
 
 const { deadline } = db
@@ -86,13 +87,30 @@ const CounterSection = () => {
   // 自動的にtrueになり
   // その後は決して変更できないようにする
 
+  const theEnd = ():void => {
+    let res = window.confirm('カウントを終わらせますか？')
+    if (res) {
+      alert("お疲れさまでした。")
+    } else {
+      alert("引き続き頑張ってください。")
+    }
+  }
+
   const allItems: Array<Deadline> | any = useLiveQuery(() => deadline.toArray(), [])
+  const nonFinishedCount: Array<Deadline> | any = allItems?.filter((item: Deadline | any) => item.finished === false)
+  // filterで取得した配列をインデックスで指定するとエラーが出るっぽい
+  // console.log(nonFinishedCount[0])
+  // ↓をやったらエラーが出てしまう
+  // const testSearch: Array<Deadline> | any  = allItems?.filter((item: Deadline | any) => item.finished === false)
+  // const tmpAllItems: Array<Deadline> | any  = allItems.concat()
+  // const testSearch: Array<Deadline> | any  = tmpAllItems?.filter((item: Deadline | any) => item.finished === false)
+  // console.log(deadline.where(finished).equals(false).toArray())
 
   return (
     <div>
       <p>Counter</p>
       <div>
-        {/* <p>{testSearch[0].name}</p> */}
+        {/* <p>{nonFinishedCount}</p> */}
         <form onSubmit={(e) => addDeadline(e)}>
         {/* ↑は本番 */}
         {/* <form onSubmit={addDeadline}> */}
@@ -110,7 +128,10 @@ const CounterSection = () => {
       </div>
       <div>
         <h1>ここにカウントダウン</h1>
+        {/* finishedがfalseのデータを見つけてきて */}
+        {/* それを↓にぶち込む */}
         <h2>XX日XX時間XX分XX秒</h2>
+        <button onClick={theEnd}>終了</button>
       </div>
       <div className="card white darken-1">
         <div className="card-content">
