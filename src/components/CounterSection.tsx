@@ -6,7 +6,7 @@ import millisecondsTest from '../functions/millisecondsTest'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Deadline } from '../models/Deadline'
 import dateCreate from '../functions/dateCreate'
-import Test from './Test'
+
 
 
 const { deadline } = db
@@ -79,9 +79,11 @@ const CounterSection = () => {
   // 自動的にtrueになり
   // その後は決して変更できないようにする
 
-  const theEnd = ():void => {
+  const theEnd = async(id: number | any) => {
     let res = window.confirm('カウントを終わらせますか？')
     if (res) {
+      // finishedをtrueにする処理を書く
+      await deadline.update(id, {finished: true})
       alert("お疲れさまでした。")
     } else {
       alert("引き続き頑張ってください。")
@@ -89,23 +91,22 @@ const CounterSection = () => {
   }
 
   const allItems: Array<Deadline> | any = useLiveQuery(() => deadline.toArray(), [])
-  // const nonFinishedCount: Array<Deadline> | any = allItems?.filter((item: Deadline | any) => item.finished === false)
+  const nonFinishedCount: Array<Deadline> | any = allItems?.filter((item: Deadline | any) => item.finished === false)
   // const nonFinishedCount: Array<Deadline> | any = allItems?.find((item: Deadline | any) => item.finished === false)
   // console.log(nonFinishedCount)
   // ↑普通の配列や連想配列にできて当たり前のことをやったらエラーが出る(lengthとか)
   // filterで取得した配列をインデックスで指定するとエラーが出るっぽい
   // console.log(nonFinishedCount[0])
-  // ↓をやったらエラーが出てしまう
-  // const testSearch: Array<Deadline> | any  = allItems?.filter((item: Deadline | any) => item.finished === false)
-  // const tmpAllItems: Array<Deadline> | any  = allItems.concat()
-  // const testSearch: Array<Deadline> | any  = tmpAllItems?.filter((item: Deadline | any) => item.finished === false)
-  // console.log(deadline.where(finished).equals(false).toArray())
+  const [current, setCurrent] = useState<number>(Date.now())
+  setInterval(() => {
+    setCurrent(Date.now())
+  }, 1000)
 
   return (
     <div>
       <p>Counter</p>
       {/* <Test items={allItems}/> */}
-      <Test />
+      {/* <Test /> */}
       <div>
         {/* <p>{nonFinishedCount}</p> */}
         <form onSubmit={(e) => addDeadline(e)}>
@@ -124,11 +125,19 @@ const CounterSection = () => {
         </form>
       </div>
       <div>
-        <h1>ここにカウントダウン</h1>
         {/* finishedがfalseのデータを見つけてきて */}
         {/* それを↓にぶち込む */}
-        <h2>XX日XX時間XX分XX秒</h2>
-        <button onClick={theEnd}>終了</button>
+        {
+          nonFinishedCount?.map((c: Deadline) => (
+            <div key={c.id}>
+              <h2>{c.name} を我慢して現在</h2>
+              <h2>{millisecondsTest(milliSecEdit(current - c.startSec))}</h2>
+              <h2>が経っている</h2>
+              <button onClick={() => theEnd(c.id)}>終了</button>
+            </div>
+          ))
+        }
+        {/* 処理が重くなりそうだから別のコンポーネントに分ける */}
       </div>
       <div className="card white darken-1">
         <div className="card-content">
@@ -146,7 +155,7 @@ const CounterSection = () => {
                   <span className={`black-tex ${item.finished && 'strike-text'}`}>
                     {item.name} : 
                     期限 | {dateCreate(item.deadline)} : 
-                    カウント | { millisecondsTest(milliSecEdit(Date.now() - item.startSec))}
+                    開始日 | { dateCreate(item.startSec) }
                   </span>
                 </label>
               </p>
