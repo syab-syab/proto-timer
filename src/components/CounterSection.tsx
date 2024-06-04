@@ -6,7 +6,7 @@ import millisecondsTest from '../functions/millisecondsTest'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Deadline } from '../models/Deadline'
 import dateCreate from '../functions/dateCreate'
-import { finished } from 'stream'
+import Test from './Test'
 
 
 const { deadline } = db
@@ -43,16 +43,8 @@ const CounterSection = () => {
     // setStartSec(String(tmpStart))
     console.log(startMilli)
     console.log(e)
-    // console.log("startSec, ", startSec)
-    // console.log(name, (Number(deadlineSec)*60000 + startMilli), startMilli, achievement, finished)
     console.log(name, (Number(deadlineSec)*60000 + startMilli), startMilli, false, false)
-    // await deadline.add({
-    //   name: name,
-    //   deadline: (Number(deadlineSec)*60000 + startMilli),
-    //   startSec: startMilli,
-    //   achievement: achievement,
-    //   finished: finished,
-    // })
+    // finishedがfalseのデータが一つでもあったら追加できないようにする
     await deadline.add({
       name: name,
       deadline: (Number(deadlineSec)*60000 + startMilli),
@@ -72,7 +64,7 @@ const CounterSection = () => {
   const deleteDeadline = async (id: number | undefined) => deadline.delete(id)
 
   // finishedの値を変更
-  // いずれはリセットボタンを押したらfinishedがtrueになって
+  // いずれは終了ボタンを押したらfinishedがtrueになって
   // その後二度と変更できないようにする
   const toggleStatus = async (
     id: number | any,
@@ -97,7 +89,10 @@ const CounterSection = () => {
   }
 
   const allItems: Array<Deadline> | any = useLiveQuery(() => deadline.toArray(), [])
-  const nonFinishedCount: Array<Deadline> | any = allItems?.filter((item: Deadline | any) => item.finished === false)
+  // const nonFinishedCount: Array<Deadline> | any = allItems?.filter((item: Deadline | any) => item.finished === false)
+  // const nonFinishedCount: Array<Deadline> | any = allItems?.find((item: Deadline | any) => item.finished === false)
+  // console.log(nonFinishedCount)
+  // ↑普通の配列や連想配列にできて当たり前のことをやったらエラーが出る(lengthとか)
   // filterで取得した配列をインデックスで指定するとエラーが出るっぽい
   // console.log(nonFinishedCount[0])
   // ↓をやったらエラーが出てしまう
@@ -109,6 +104,8 @@ const CounterSection = () => {
   return (
     <div>
       <p>Counter</p>
+      {/* <Test items={allItems}/> */}
+      <Test />
       <div>
         {/* <p>{nonFinishedCount}</p> */}
         <form onSubmit={(e) => addDeadline(e)}>
@@ -135,6 +132,7 @@ const CounterSection = () => {
       </div>
       <div className="card white darken-1">
         <div className="card-content">
+          {/* 表示するのはfinishedがtrueのものだけ */}
           {allItems?.map((item: Deadline) => (
             <div className="row" key={item.id}>
               <p className="col s10">
