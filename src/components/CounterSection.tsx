@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react'
 import { db } from '../models/db'
 import milliSecEdit from '../functions/milliSecEdit'
@@ -90,17 +90,39 @@ const CounterSection = () => {
     }
   }
 
+
+
+  // 多分useLiveQuery, deadline, toArray() のどれかが悪さをしてる(あるいはindexedDBの仕様そのもの)
+  // 参照(?)をするとエラーが出る
   const allItems: Array<Deadline> | any = useLiveQuery(() => deadline.toArray(), [])
+  // 自分で止めない限りカウントは止めない
   const nonFinishedCount: Array<Deadline> | any = allItems?.filter((item: Deadline | any) => item.finished === false)
-  // const nonFinishedCount: Array<Deadline> | any = allItems?.find((item: Deadline | any) => item.finished === false)
+
+  // console.log(allItems.length)
+  // const tmpNonFinishedCount: Array<Deadline> | any = allItems?.find((item: Deadline | any) => item.finished === false)
+  // const testTmp: Array<Deadline> | any = useLiveQuery(() => deadline.filter((item: Deadline | any) => item.finished === false).toArray(), [])
+  // console.log(testTmp)
   // console.log(nonFinishedCount)
   // ↑普通の配列や連想配列にできて当たり前のことをやったらエラーが出る(lengthとか)
   // filterで取得した配列をインデックスで指定するとエラーが出るっぽい
   // console.log(nonFinishedCount[0])
-  const [current, setCurrent] = useState<number>(Date.now())
-  setInterval(() => {
-    setCurrent(Date.now())
-  }, 1000)
+
+    // とりあえず1秒ごとにカウントするよう動かしてみた
+    const [current, setCurrent] = useState<number>(Date.now())
+    setInterval(() => {
+      setCurrent(Date.now())
+      allItems?.map(async (item: Deadline | any) => {
+        if(current > item.deadline) {
+          // console.log("達成")
+          await deadline.update(item.id, {achievement: true})
+        } 
+        // else {
+        //   deadline.update(item.id, {achievement: false})
+        // }
+      })
+    }, 1000)
+
+    const tmp: boolean = false
 
   return (
     <div>
@@ -156,6 +178,11 @@ const CounterSection = () => {
                     {item.name} : 
                     期限 | {dateCreate(item.deadline)} : 
                     開始日 | { dateCreate(item.startSec) }
+                    {/* {(Date.now() - item.deadline) > 1 && ' : 達成'} */}
+                    {item.achievement && ' : 達成'}
+                  </span>
+                  <span>
+                  {!item.finished && millisecondsTest(milliSecEdit(current - item.startSec))}
                   </span>
                 </label>
               </p>
