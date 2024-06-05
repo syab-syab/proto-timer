@@ -42,7 +42,7 @@ const CounterSection = () => {
     // setStateが効かない
     // setStartSec(String(tmpStart))
     console.log(startMilli)
-    console.log(e)
+    // console.log(e)
     console.log(name, (Number(deadlineSec)*60000 + startMilli), startMilli, false, false)
     // finishedがfalseのデータが一つでもあったら追加できないようにする
     await deadline.add({
@@ -61,7 +61,13 @@ const CounterSection = () => {
 
   // 以下の二つは後ほどやる
   // deleteにプライマリーキーを指定して削除できる
-  const deleteDeadline = async (id: number | undefined) => deadline.delete(id)
+  const deleteDeadline = async (id: number | undefined) => {
+    let res = window.confirm('削除しますか？')
+    if (res) {
+      alert('削除しました')
+      deadline.delete(id)
+    }
+  }
 
   // finishedの値を変更
   // いずれは終了ボタンを押したらfinishedがtrueになって
@@ -96,33 +102,34 @@ const CounterSection = () => {
   // 参照(?)をするとエラーが出る
   const allItems: Array<Deadline> | any = useLiveQuery(() => deadline.toArray(), [])
   // 自分で止めない限りカウントは止めない
-  const nonFinishedCount: Array<Deadline> | any = allItems?.filter((item: Deadline | any) => item.finished === false)
+  // const nonFinishedCount: Array<Deadline> | any = allItems?.filter((item: Deadline | any) => item.finished === false)
 
-  // console.log(allItems.length)
-  // const tmpNonFinishedCount: Array<Deadline> | any = allItems?.find((item: Deadline | any) => item.finished === false)
-  // const testTmp: Array<Deadline> | any = useLiveQuery(() => deadline.filter((item: Deadline | any) => item.finished === false).toArray(), [])
-  // console.log(testTmp)
-  // console.log(nonFinishedCount)
-  // ↑普通の配列や連想配列にできて当たり前のことをやったらエラーが出る(lengthとか)
-  // filterで取得した配列をインデックスで指定するとエラーが出るっぽい
-  // console.log(nonFinishedCount[0])
-
-    // とりあえず1秒ごとにカウントするよう動かしてみた
-    const [current, setCurrent] = useState<number>(Date.now())
-    setInterval(() => {
+  // とりあえず1秒ごとにカウントするよう動かしてみた
+  const [current, setCurrent] = useState<number>(Date.now())
+  // setInterval(() => {
+  //   setCurrent(Date.now())
+  //   allItems?.map(async (item: Deadline | any) => {
+  //     if(!(item.achievement) && current > item.deadline) {
+  //       await deadline.update(item.id, {achievement: true})
+  //     } 
+  //   })
+  // }, 1000)
+  useEffect(() => {
+    // セットアップ処理
+    const count = setInterval(() => {
       setCurrent(Date.now())
       allItems?.map(async (item: Deadline | any) => {
-        if(current > item.deadline) {
-          // console.log("達成")
+        if(!(item.achievement) && current > item.deadline) {
           await deadline.update(item.id, {achievement: true})
         } 
-        // else {
-        //   deadline.update(item.id, {achievement: false})
-        // }
       })
     }, 1000)
 
-    const tmp: boolean = false
+    // クリーンアップ処理
+    // return無しだと挙動がおかしくなるから必要
+    return () => clearInterval(count)
+  }, [current])
+
 
   return (
     <div>
@@ -130,10 +137,7 @@ const CounterSection = () => {
       {/* <Test items={allItems}/> */}
       {/* <Test /> */}
       <div>
-        {/* <p>{nonFinishedCount}</p> */}
         <form onSubmit={(e) => addDeadline(e)}>
-        {/* ↑は本番 */}
-        {/* <form onSubmit={addDeadline}> */}
           <label>何を我慢する？</label>
           <input type="text" value={name} onChange={nameHandleChange} required />
           {/* 期限は短いのから試していくこと */}
@@ -149,7 +153,7 @@ const CounterSection = () => {
       <div>
         {/* finishedがfalseのデータを見つけてきて */}
         {/* それを↓にぶち込む */}
-        {
+        {/* {
           nonFinishedCount?.map((c: Deadline) => (
             <div key={c.id}>
               <h2>{c.name} を我慢して現在</h2>
@@ -158,7 +162,7 @@ const CounterSection = () => {
               <button onClick={() => theEnd(c.id)}>終了</button>
             </div>
           ))
-        }
+        } */}
         {/* 処理が重くなりそうだから別のコンポーネントに分ける */}
       </div>
       <div className="card white darken-1">
@@ -168,30 +172,35 @@ const CounterSection = () => {
             <div className="row" key={item.id}>
               <p className="col s10">
                 <label>
+                  {/* finishedをtrueにしたらもうチェックボックス(カウント終了ボタン)を表示できなくする */}
                   <input
                     type="checkbox"
                     checked={item.finished}
                     className="checkbox-blue"
                     onChange={(e) => toggleStatus(item.id, e)}
                   />
+                  {/* {!item.finished && <button>終</button>} */}
                   <span className={`black-tex ${item.finished && 'strike-text'}`}>
                     {item.name} : 
                     期限 | {dateCreate(item.deadline)} : 
                     開始日 | { dateCreate(item.startSec) }
                     {/* {(Date.now() - item.deadline) > 1 && ' : 達成'} */}
-                    {item.achievement && ' : 達成'}
+                    {item.achievement && ' : 達成 '}
                   </span>
                   <span>
                   {!item.finished && millisecondsTest(milliSecEdit(current - item.startSec))}
                   </span>
                 </label>
               </p>
-              <i
-                onClick={() => deleteDeadline(item.id)}
-                className="col s2 material-icons delete-button"
-              >
-                delete
-              </i>
+              {/* 削除ボタンはfinishedがtureにならない限りは押せないようにする */}
+              {item.finished && 
+                <i
+                  onClick={() => deleteDeadline(item.id)}
+                  className="col s2 material-icons delete-button"
+                >
+                  delete
+                </i>
+              }
             </div>            
           ))}
         </div>
