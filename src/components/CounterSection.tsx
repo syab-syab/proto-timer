@@ -18,12 +18,6 @@ const CounterSection = () => {
   // ミリ秒二つ↓も一応文字列で型付け
   // 期限のミリ秒
   const [deadlineSec, setDeadlineSec] = useState<string>("")
-  // スタート時のミリ秒(このstateは必要無いかも)
-  // const [startSec, setStartSec] = useState<string>("")
-  // 期限を達成したか否か
-  // const [achievement, setAchievement] = useState<boolean>(false)
-  // 達成・未達成に関わらずカウントを終えたかどうか
-  // const [finished, setFinished] = useState<boolean>(false)
 
   const nameHandleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value)
@@ -106,14 +100,6 @@ const CounterSection = () => {
 
   // とりあえず1秒ごとにカウントするよう動かしてみた
   const [current, setCurrent] = useState<number>(Date.now())
-  // setInterval(() => {
-  //   setCurrent(Date.now())
-  //   allItems?.map(async (item: Deadline | any) => {
-  //     if(!(item.achievement) && current > item.deadline) {
-  //       await deadline.update(item.id, {achievement: true})
-  //     } 
-  //   })
-  // }, 1000)
   useEffect(() => {
     // セットアップ処理
     const count = setInterval(() => {
@@ -134,8 +120,6 @@ const CounterSection = () => {
   return (
     <div>
       <p>Counter</p>
-      {/* <Test items={allItems}/> */}
-      {/* <Test /> */}
       <div>
         <form onSubmit={(e) => addDeadline(e)}>
           <label>何を我慢する？</label>
@@ -151,19 +135,6 @@ const CounterSection = () => {
         </form>
       </div>
       <div>
-        {/* finishedがfalseのデータを見つけてきて */}
-        {/* それを↓にぶち込む */}
-        {/* {
-          nonFinishedCount?.map((c: Deadline) => (
-            <div key={c.id}>
-              <h2>{c.name} を我慢して現在</h2>
-              <h2>{millisecondsTest(milliSecEdit(current - c.startSec))}</h2>
-              <h2>が経っている</h2>
-              <button onClick={() => theEnd(c.id)}>終了</button>
-            </div>
-          ))
-        } */}
-        {/* 処理が重くなりそうだから別のコンポーネントに分ける */}
       </div>
       <div className="card white darken-1">
         <div className="card-content">
@@ -185,7 +156,7 @@ const CounterSection = () => {
                     期限 | {dateCreate(item.deadline)} : 
                     開始日 | { dateCreate(item.startSec) }
                     {/* {(Date.now() - item.deadline) > 1 && ' : 達成'} */}
-                    {item.achievement && ' : 達成 '}
+                    {item.achievement ? ' : 達成 ' : " : 未達成"}
                   </span>
                   <span>
                   {!item.finished && millisecondsTest(milliSecEdit(current - item.startSec))}
