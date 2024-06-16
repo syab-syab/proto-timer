@@ -6,6 +6,7 @@ import millisecondsTest from '../functions/millisecondsTest'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Deadline } from '../models/Deadline'
 import dateCreate from '../functions/dateCreate'
+import ValidateTest from './ValidateTest'
 
 
 
@@ -120,6 +121,7 @@ const CounterSection = () => {
   return (
     <div>
       <p>Counter</p>
+      <ValidateTest />
       <div>
         <form onSubmit={(e) => addDeadline(e)}>
           <label>何を我慢する？</label>
